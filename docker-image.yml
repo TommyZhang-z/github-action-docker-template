@@ -46,4 +46,10 @@ jobs:
     - name: Load and Run Docker image on server
       run: |
         ssh ${{ env.USER }}@${{ env.HOST }} "docker load < ${{ env.TAR_NAME }}"
-        ssh ${{ env.USER }}@${{ env.HOST }} "docker run -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }}"
+        ssh ${{ env.USER }}@${{ env.HOST }} "\
+        docker run -d --restart unless-stopped \
+        -e VAR1=${{ secrets.VAR1 }} \
+        -e VAR2=${{ secrets.VAR2 }} \
+        -e VAR3=${{ secrets.VAR3 }} \
+        --name ${{ env.CONTAINER_NAME }} \
+        ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }} \"
