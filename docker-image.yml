@@ -22,12 +22,16 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-
+    
+    - name: Get current date
+      id: date
+      run: echo "::set-output name=date::$(date +%s)"
+    
     - name: Build the Docker image
-      run: docker build . --file ${{ env.DOCKERFILE_PATH }} --tag ${{ env.IMAGE_NAME }}
+      run: docker build . --file ${{ env.DOCKERFILE_PATH }} --tag ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }}
     
     - name: Save the Docker image
-      run: docker save ${{ env.IMAGE_NAME }} > ${{ env.TAR_NAME }}
+      run: docker save ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }} > ${{ env.TAR_NAME }}
 
     - name: Install SSH key
       uses: webfactory/ssh-agent@v0.8.0
@@ -40,4 +44,4 @@ jobs:
     - name: Load and Run Docker image on server
       run: |
         ssh ${{ env.USER }}@${{ env.HOST }} "docker load < ${{ env.TAR_NAME }}"
-        ssh ${{ env.USER }}@${{ env.HOST }} "docker run -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}"
+        ssh ${{ env.USER }}@${{ env.HOST }} "docker run -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}:${{ steps.date.outputs.date }}"
