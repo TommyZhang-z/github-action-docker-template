@@ -1,0 +1,43 @@
+name: Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  USER: 'root'
+  HOST: 'your-server-ip'
+  IMAGE_NAME: 'your-image-name'
+  CONTAINER_NAME: 'your-container-name'
+  TAR_NAME: 'docker-image.tar'
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Build the Docker image
+      run: docker build . --file ${{ env.DOCKERFILE_PATH }} --tag ${{ env.IMAGE_NAME }}
+    
+    - name: Save the Docker image
+      run: docker save ${{ env.IMAGE_NAME }} > ${{ env.TAR_NAME }}
+
+    - name: Install SSH key
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    
+    - name: Upload Docker image to server
+      run: scp ${{ env.TAR_NAME }} ${{ env.USER }}@${{ env.HOST }}:${{ env.TARGET_PATH }}
+    
+    - name: Load and Run Docker image on server
+      run: |
+        ssh ${{ env.USER }}@${{ env.HOST }} "docker load < ${{ env.TAR_NAME }}"
+        ssh ${{ env.USER }}@${{ env.HOST }} "docker run -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ${{ env.IMAGE_NAME }}"
