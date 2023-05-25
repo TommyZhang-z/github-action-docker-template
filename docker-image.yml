@@ -12,6 +12,8 @@ env:
   IMAGE_NAME: 'your-image-name'
   CONTAINER_NAME: 'your-container-name'
   TAR_NAME: 'docker-image.tar'
+  TARGET_PATH: '~'
+  DOCKERFILE_PATH: './Dockerfile'
 
 jobs:
 
